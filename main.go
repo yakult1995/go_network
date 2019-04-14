@@ -44,6 +44,14 @@ type IPv4Option struct {
 	OptionData   []byte
 }
 
+type ICMP struct {
+	Type uint8
+	Code uint8
+	Checksum uint16
+	Length uint8
+	Data []byte
+}
+
 
 func main() {
 	SetDefaultParam()
@@ -72,8 +80,8 @@ func main() {
 
 			for EndFlag == 0 {
 				buffer := make([]byte, 1024)
-				_, _ = file.Read(buffer)
-				IpHeaderDecode(buffer)
+				num, _ := file.Read(buffer)
+				IpHeaderDecode(buffer, num)
 
 				//EtherRecv(buffer[:num])
 			}
@@ -88,7 +96,7 @@ func main() {
 }
 
 // IPヘッダー解析
-func IpHeaderDecode(IpBuff []byte) {
+func IpHeaderDecode(IpBuff []byte, num int) {
 	var Ip IPv4
 	Ip.Version = IpBuff[0] >> 4
 	Ip.IHL = IpBuff[0] & 0x0F
@@ -105,6 +113,15 @@ func IpHeaderDecode(IpBuff []byte) {
 	Ip.Options = Ip.Options[:0]
 	Ip.Padding = nil
 	fmt.Println(Ip)
+
+	IcmpBuff := IpBuff[20:]
+	var Icmp ICMP
+	Icmp.Type = IcmpBuff[0]
+	Icmp.Code = IcmpBuff[1]
+	Icmp.Checksum = binary.BigEndian.Uint16(IcmpBuff[2:4])
+	Icmp.Length = IcmpBuff[5]
+	Icmp.Data = IcmpBuff[8:num]
+	fmt.Println(Icmp)
 }
 
 // IP受信バッファの初期化
