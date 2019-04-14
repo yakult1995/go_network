@@ -1,13 +1,38 @@
 package main
 
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"sync"
+)
+
 func main() {
 	SetDefaultParam()
 	IsSameSubnet("192.168.0.100")
 
+	ch := make(chan int, 2)
+	wg := sync.WaitGroup{}
+
+	for i := 0; i < 10; i++ {
+		ch <- 1
+		wg.Add(1)
+		go func(index string) {
+			stdin := bufio.NewScanner(os.Stdin)
+			for stdin.Scan() {
+				fmt.Println(index, " : ", stdin.Text())
+				break
+			}
+			<-ch
+			wg.Done()
+		}(strconv.Itoa(i))
+	}
+
+	wg.Wait()
 	//EndFlag := 0
 	//var DeviceSoc int
 }
-
 
 // IP受信バッファの初期化
 func IpRecvBufInit() {}

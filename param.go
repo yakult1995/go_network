@@ -53,6 +53,7 @@ func IsSameSubnet(Addr string) int {
 	Mask := net.IPMask(net.ParseIP(Param.Vmask).To4())
 	Network := net.ParseIP(Param.Vip).Mask(Mask).String()
 	CheckIpNetwork := net.ParseIP(Addr).Mask(Mask).String()
+	fmt.Println(Network == CheckIpNetwork)
 	if Network == CheckIpNetwork {
 		return 1
 	}
