@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/sys/unix"
 	"os"
 	"strconv"
 	"sync"
@@ -76,7 +77,14 @@ func MyEthThread() {
 
 // イーサネットフレーム受信処理
 func EtherRecv(buff []byte) {
-	fmt.Println(buff)
+	fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, 0)
+	if err != nil {
+		panic(err)
+	}
+	//var ifReq int
+
+	//fmt.Println(unix.IoctlSetInt(fd, unix.SIOCGIFFLAGS, ifReq))
+	fmt.Println(fd, unix.SIOCGIFFLAGS)
 }
 
 // ARPパケット受信処理
