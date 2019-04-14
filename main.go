@@ -15,6 +15,12 @@ var EndFlag = 0
 var DeviceSoc int32
 var Timeout = 500
 
+var Protcol = map[int] string {
+	1 : "ICMP",
+	6 : "TCP",
+	17 : "UDP",
+}
+
 type IPv4Flag uint8
 type IPv4 struct {
 	Version    uint8
@@ -25,7 +31,7 @@ type IPv4 struct {
 	Flags      IPv4Flag
 	FragOffset uint16
 	TTL        uint8
-	Protocol   uint8
+	Protocol   string
 	Checksum   uint16
 	SrcIP      net.IP
 	DstIP      net.IP
@@ -92,7 +98,7 @@ func IpHeaderDecode(IpBuff []byte) {
 	Ip.Flags = IPv4Flag(binary.BigEndian.Uint16(IpBuff[6:8]) >> 13)
 	Ip.FragOffset = binary.BigEndian.Uint16(IpBuff[6:8]) & 0x1FFF
 	Ip.TTL = IpBuff[8]
-	Ip.Protocol = IpBuff[9]
+	Ip.Protocol = Protcol[int(IpBuff[9])]
 	Ip.Checksum = binary.BigEndian.Uint16(IpBuff[10:12])
 	Ip.SrcIP = IpBuff[12:16]
 	Ip.DstIP = IpBuff[16:20]
