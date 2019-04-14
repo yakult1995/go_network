@@ -1,37 +1,13 @@
 package main
 
-import (
-	"fmt"
-	"github.com/BurntSushi/toml"
-)
-
-type Config struct {
-	IPTTL   int    `toml:"IP-TTL"`
-	MTU     int    `toml:"MTU"`
-	Device  string `toml:"device"`
-	Vmac    string `toml:"vmac"`
-	Vip     string `toml:"vip"`
-	Gateway string `toml:"gateway"`
-}
-
 func main() {
-	// デフォルトパラメータ受け取り
-	var config Config
-	_, err := toml.DecodeFile("eth_conf.toml", &config)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("パラメータ : ", config)
+	SetDefaultParam()
+	IsSameSubnet("192.168.0.100")
 
-	EndFlag := 0
-	var DeviceSoc int
+	//EndFlag := 0
+	//var DeviceSoc int
 }
 
-// デフォルトパラメータのセット
-func SetDefaultParam() {}
-
-// パラメータの読み込み
-func ReadParam() {}
 
 // IP受信バッファの初期化
 func IpRecvBufInit() {}
@@ -49,7 +25,9 @@ func GetMacAddress() {}
 func SigTerm() {}
 
 // 送受信スレッド
-func MyEthThread() {}
+func MyEthThread() {
+	//var nready int
+}
 
 // イーサネットフレーム受信処理
 func EtherRecv() {}
