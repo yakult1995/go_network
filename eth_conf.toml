@@ -1,7 +1,6 @@
-[eth-conf]
 IP-TTL = 64
 MTU = 1500
-debive = "ens161"
+device = "ens161"
 vmac = "02:00:00:00:00:01"
 vip = "192.168.0.100"
 vmask = "255.255.255.0"
