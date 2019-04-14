@@ -1,38 +1,57 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"strconv"
 	"sync"
+	"syscall"
 )
+
+var EndFlag = 0
+var DeviceSoc int32
+var Timeout = 500
 
 func main() {
 	SetDefaultParam()
 	IsTargetIpAddr("192.168.0.100")
 	IsSameSubnet("192.168.0.100")
 
+	// 同時実行スレッド数
 	ch := make(chan int, 2)
 	wg := sync.WaitGroup{}
 
-	for i := 0; i < 10; i++ {
+	// 特に指定がなければ無限ループ
+	for i := 0; i < 3; i++ {
 		ch <- 1
 		wg.Add(1)
 		go func(index string) {
-			stdin := bufio.NewScanner(os.Stdin)
-			for stdin.Scan() {
-				fmt.Println(index, " : ", stdin.Text())
-				break
+			fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_ICMP)
+			if err != nil {
+				panic(err)
 			}
-			<-ch
+			defer syscall.Close(fd)
+
+			file := os.NewFile(uintptr(fd), "")
+
+			//var Nready int
+			// https://forum.golangbridge.org/t/unix-poll-help/6834
+
+			for EndFlag == 0 {
+				buffer := make([]byte, 1024)
+				num, _ := file.Read(buffer)
+
+				//fmt.Printf("% X\n", buffer[:num])
+				EtherRecv(buffer[:num])
+			}
+
+			// 処理終了のお知らせ
+			<- ch
 			wg.Done()
 		}(strconv.Itoa(i))
 	}
 
 	wg.Wait()
-	//EndFlag := 0
-	//var DeviceSoc int
 }
 
 // IP受信バッファの初期化
@@ -56,7 +75,9 @@ func MyEthThread() {
 }
 
 // イーサネットフレーム受信処理
-func EtherRecv() {}
+func EtherRecv(buff []byte) {
+	fmt.Println(buff)
+}
 
 // ARPパケット受信処理
 func ArpRecv() {}
