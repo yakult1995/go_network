@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"golang.org/x/sys/unix"
+	"net"
 	"os"
 	"strconv"
 	"sync"
@@ -13,13 +15,37 @@ var EndFlag = 0
 var DeviceSoc int32
 var Timeout = 500
 
+type IPv4Flag uint8
+type IPv4 struct {
+	Version    uint8
+	IHL        uint8
+	TOS        uint8
+	Length     uint16
+	Id         uint16
+	Flags      IPv4Flag
+	FragOffset uint16
+	TTL        uint8
+	Protocol   uint8
+	Checksum   uint16
+	SrcIP      net.IP
+	DstIP      net.IP
+	Options    []IPv4Option
+	Padding    []byte
+}
+type IPv4Option struct {
+	OptionType   uint8
+	OptionLength uint8
+	OptionData   []byte
+}
+
+
 func main() {
 	SetDefaultParam()
 	IsTargetIpAddr("192.168.0.100")
 	IsSameSubnet("192.168.0.100")
 
 	// 同時実行スレッド数
-	ch := make(chan int, 2)
+	ch := make(chan int, 1)
 	wg := sync.WaitGroup{}
 
 	// 特に指定がなければ無限ループ
@@ -40,10 +66,10 @@ func main() {
 
 			for EndFlag == 0 {
 				buffer := make([]byte, 1024)
-				num, _ := file.Read(buffer)
+				_, _ = file.Read(buffer)
+				IpHeaderDecode(buffer)
 
-				//fmt.Printf("% X\n", buffer[:num])
-				EtherRecv(buffer[:num])
+				//EtherRecv(buffer[:num])
 			}
 
 			// 処理終了のお知らせ
@@ -53,6 +79,26 @@ func main() {
 	}
 
 	wg.Wait()
+}
+
+// IPヘッダー解析
+func IpHeaderDecode(IpBuff []byte) {
+	var Ip IPv4
+	Ip.Version = IpBuff[0] >> 4
+	Ip.IHL = IpBuff[0] & 0x0F
+	Ip.TOS = IpBuff[1]
+	Ip.Length = binary.BigEndian.Uint16(IpBuff[2:4])
+	Ip.Id = binary.BigEndian.Uint16(IpBuff[4:6])
+	Ip.Flags = IPv4Flag(binary.BigEndian.Uint16(IpBuff[6:8]) >> 13)
+	Ip.FragOffset = binary.BigEndian.Uint16(IpBuff[6:8]) & 0x1FFF
+	Ip.TTL = IpBuff[8]
+	Ip.Protocol = IpBuff[9]
+	Ip.Checksum = binary.BigEndian.Uint16(IpBuff[10:12])
+	Ip.SrcIP = IpBuff[12:16]
+	Ip.DstIP = IpBuff[16:20]
+	Ip.Options = Ip.Options[:0]
+	Ip.Padding = nil
+	fmt.Println(Ip)
 }
 
 // IP受信バッファの初期化
