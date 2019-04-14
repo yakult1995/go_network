@@ -40,10 +40,11 @@ func ReadParam() int {
 }
 
 // 仮想IPとの一致判定
-func IsTargetIpAddr(Addr net.IP) int {
-	//if Param.Vip != Addr {
-	//	return 1
-	//}
+func IsTargetIpAddr(Addr string) int {
+	fmt.Println("IsTargetIpAddr() : ", Param.Vip == Addr)
+	if net.ParseIP(Param.Vip).String() == Addr {
+		return 1
+	}
 	return 0
 }
 
@@ -53,7 +54,7 @@ func IsSameSubnet(Addr string) int {
 	Mask := net.IPMask(net.ParseIP(Param.Vmask).To4())
 	Network := net.ParseIP(Param.Vip).Mask(Mask).String()
 	CheckIpNetwork := net.ParseIP(Addr).Mask(Mask).String()
-	fmt.Println(Network == CheckIpNetwork)
+	fmt.Println("IsSameSubnet() : ", Network == CheckIpNetwork)
 	if Network == CheckIpNetwork {
 		return 1
 	}

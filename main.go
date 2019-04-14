@@ -10,6 +10,7 @@ import (
 
 func main() {
 	SetDefaultParam()
+	IsTargetIpAddr("192.168.0.100")
 	IsSameSubnet("192.168.0.100")
 
 	ch := make(chan int, 2)
