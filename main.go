@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
-	"golang.org/x/sys/unix"
+	_ "golang.org/x/sys/unix"
 	"net"
 	"os"
 	"strconv"
@@ -14,6 +14,13 @@ import (
 var EndFlag = 0
 var DeviceSoc int32
 var Timeout = 500
+
+type Ethernet struct {
+	DstMac []byte
+	SrcMac []byte
+	Type uint16
+	Data []byte
+}
 
 var Protcol = map[int] string {
 	1 : "ICMP",
@@ -29,7 +36,7 @@ type IPv4 struct {
 	Length     uint16
 	Id         uint16
 	Flags      IPv4Flag
-	FragOffset uint16
+	FlagOffset uint16
 	TTL        uint8
 	Protocol   string
 	Checksum   uint16
@@ -52,6 +59,14 @@ type ICMP struct {
 	Data []byte
 }
 
+// https://github.com/fridolin-koch/grnvs/blob/master/ndp/ndisc.go
+func Htons(n uint16) uint16 {
+	var (
+		high = n >> 8
+		ret  = n<<8 + high
+	)
+	return ret
+}
 
 func main() {
 	SetDefaultParam()
@@ -67,8 +82,11 @@ func main() {
 		ch <- 1
 		wg.Add(1)
 		go func(index string) {
-			fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_ICMP)
+			// これでPreAmbleは入ってこない
+			fd, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, int(Htons(syscall.ETH_P_IP)))
+			//fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_ICMP)
 			if err != nil {
+				fmt.Println("Socket")
 				panic(err)
 			}
 			defer syscall.Close(fd)
@@ -79,11 +97,16 @@ func main() {
 			// https://forum.golangbridge.org/t/unix-poll-help/6834
 
 			for EndFlag == 0 {
+				fmt.Println()
 				buffer := make([]byte, 1024)
-				num, _ := file.Read(buffer)
-				IpHeaderDecode(buffer, num)
-
+				num, err := file.Read(buffer)
+				if err != nil {
+					fmt.Println("Buffer")
+					panic(err)
+				}
+				//IpHeaderDecode(buffer, num)
 				//EtherRecv(buffer[:num])
+				EthernetFrameDecode(buffer, num)
 			}
 
 			// 処理終了のお知らせ
@@ -95,8 +118,21 @@ func main() {
 	wg.Wait()
 }
 
+// イーサネットフレーム解析
+// LAN内通信だとイーサネットフレーム付かないのか！
+func EthernetFrameDecode(EthernetFrameBuff []byte, num int) {
+	fmt.Println("EthernetFrameDecode()")
+	var EthernetFrame Ethernet
+	EthernetFrame.DstMac = EthernetFrameBuff[0:6]
+	EthernetFrame.SrcMac = EthernetFrameBuff[6:12]
+	EthernetFrame.Type = binary.BigEndian.Uint16(EthernetFrameBuff[12:14]) & 0x000C
+	fmt.Println("EthernetFrame : ", EthernetFrame)
+	IpHeaderDecode(EthernetFrameBuff[14:], num - 14)
+}
+
 // IPヘッダー解析
 func IpHeaderDecode(IpBuff []byte, num int) {
+	fmt.Println("IpHeaderDecode()")
 	var Ip IPv4
 	Ip.Version = IpBuff[0] >> 4
 	Ip.IHL = IpBuff[0] & 0x0F
@@ -104,7 +140,7 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 	Ip.Length = binary.BigEndian.Uint16(IpBuff[2:4])
 	Ip.Id = binary.BigEndian.Uint16(IpBuff[4:6])
 	Ip.Flags = IPv4Flag(binary.BigEndian.Uint16(IpBuff[6:8]) >> 13)
-	Ip.FragOffset = binary.BigEndian.Uint16(IpBuff[6:8]) & 0x1FFF
+	Ip.FlagOffset = binary.BigEndian.Uint16(IpBuff[6:8]) & 0x1FFF
 	Ip.TTL = IpBuff[8]
 	Ip.Protocol = Protcol[int(IpBuff[9])]
 	Ip.Checksum = binary.BigEndian.Uint16(IpBuff[10:12])
@@ -112,7 +148,7 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 	Ip.DstIP = IpBuff[16:20]
 	Ip.Options = Ip.Options[:0]
 	Ip.Padding = nil
-	fmt.Println(Ip)
+	fmt.Println("IP : ", Ip)
 
 	IcmpBuff := IpBuff[20:]
 	var Icmp ICMP
@@ -121,7 +157,7 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 	Icmp.Checksum = binary.BigEndian.Uint16(IcmpBuff[2:4])
 	Icmp.Length = IcmpBuff[5]
 	Icmp.Data = IcmpBuff[8:num]
-	fmt.Println(Icmp)
+	fmt.Println("ICMP : ", Icmp)
 }
 
 // IP受信バッファの初期化
@@ -146,14 +182,7 @@ func MyEthThread() {
 
 // イーサネットフレーム受信処理
 func EtherRecv(buff []byte) {
-	fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, 0)
-	if err != nil {
-		panic(err)
-	}
-	//var ifReq int
-
-	//fmt.Println(unix.IoctlSetInt(fd, unix.SIOCGIFFLAGS, ifReq))
-	fmt.Println(fd, unix.SIOCGIFFLAGS)
+	fmt.Println(buff)
 }
 
 // ARPパケット受信処理
