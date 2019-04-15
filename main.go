@@ -110,7 +110,12 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 	Ip.Padding = nil
 	fmt.Println("IP : ", Ip)
 
-	IcmpBuff := IpBuff[20:]
+	IcmpDecode(IpBuff[20:], num - 20)
+}
+
+// ICMP解析
+func IcmpDecode(IcmpBuff []byte, num int) {
+	fmt.Println("IcmpDecode()")
 	var Icmp ICMP
 	Icmp.Type = IcmpBuff[0]
 	Icmp.Code = IcmpBuff[1]
