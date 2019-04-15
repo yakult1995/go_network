@@ -2,23 +2,23 @@ package main
 
 import "net"
 
-var EtherProtocol = map[uint16] string {
-	2048 : "IPv4",
-	34525 : "IPv6",
-	2054 : "ARP",
+var EtherProtocol = map[uint16]string{
+	2048:  "IPv4",
+	34525: "IPv6",
+	2054:  "ARP",
 }
 
 type Ethernet struct {
 	DstMac []byte
 	SrcMac []byte
-	Type string
-	Data []byte
+	Type   string
+	Data   []byte
 }
 
-var Protcol = map[int] string {
-	1 : "ICMP",
-	6 : "TCP",
-	17 : "UDP",
+var Protcol = map[int]string{
+	1:  "ICMP",
+	6:  "TCP",
+	17: "UDP",
 }
 
 type IPv4Flag uint8
@@ -44,10 +44,22 @@ type IPv4Option struct {
 	OptionData   []byte
 }
 
+type Arp struct {
+	HardwareType   uint16
+	ProtocolType   uint16
+	HardwareLength uint8
+	ProtocolLength uint8
+	Operation      uint16
+	SrcMacAddress  []byte
+	SrcIP          net.IP
+	DstMacAddress  []byte
+	DstIP          net.IP
+}
+
 type ICMP struct {
-	Type uint8
-	Code uint8
+	Type     uint8
+	Code     uint8
 	Checksum uint16
-	Length uint8
-	Data []byte
+	Length   uint8
+	Data     []byte
 }

@@ -81,7 +81,13 @@ func EthernetFrameDecode(EthernetFrameBuff []byte, num int) {
 	EthernetFrame.SrcMac = EthernetFrameBuff[6:12]
 	EthernetFrame.Type = EtherProtocol[binary.BigEndian.Uint16(EthernetFrameBuff[12:14])]
 	fmt.Println("EthernetFrame : ", EthernetFrame)
-	IpHeaderDecode(EthernetFrameBuff[14:], num - 14)
+
+	// プロトコル別に場合分け
+	if EthernetFrame.Type == "IPv4" {
+		IpHeaderDecode(EthernetFrameBuff[14:], num - 14)
+	}else if EthernetFrame.Type == "ARP" {
+		ArpHeaderDecode(EthernetFrameBuff[14:], num - 14)
+	}
 }
 
 // IPヘッダー解析
@@ -110,8 +116,25 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 	Icmp.Code = IcmpBuff[1]
 	Icmp.Checksum = binary.BigEndian.Uint16(IcmpBuff[2:4])
 	Icmp.Length = IcmpBuff[5]
-	Icmp.Data = IcmpBuff[8:num]
+	//Icmp.Data = IcmpBuff[8:num]
 	fmt.Println("ICMP : ", Icmp)
+}
+
+// ARPヘッダー解析
+func ArpHeaderDecode(ArpBuff []byte, num int) {
+	fmt.Println("ArpHeaderDecode()")
+	fmt.Println(ArpBuff[:num])
+	var Arp Arp
+	Arp.HardwareType = binary.BigEndian.Uint16(ArpBuff[0:2])
+	Arp.ProtocolType = binary.BigEndian.Uint16(ArpBuff[2:4])
+	Arp.HardwareLength = ArpBuff[4]
+	Arp.ProtocolLength = ArpBuff[5]
+	Arp.Operation = binary.BigEndian.Uint16(ArpBuff[6:8])
+	Arp.SrcMacAddress = ArpBuff[8:14]
+	Arp.SrcIP = ArpBuff[14:18]
+	Arp.DstMacAddress = ArpBuff[18:24]
+	Arp.DstIP = ArpBuff[24:28]
+	fmt.Println("ARP : ", Arp)
 }
 
 // IP受信バッファの初期化
