@@ -38,7 +38,7 @@ func main() {
 		wg.Add(1)
 		go func(index string) {
 			// これでPreAmbleは入ってこない。ちなみにmacOSでは`AF_PACKET`, `ETH_P_IP`が認識されないので動きませぬ。
-		fd, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, int(Htons(syscall.ETH_P_ALL)))
+			fd, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, int(Htons(syscall.ETH_P_ALL)))
 			if err != nil {
 				fmt.Println("Socket")
 				panic(err)
@@ -61,7 +61,7 @@ func main() {
 			}
 
 			// 処理終了のお知らせ
-			<- ch
+			<-ch
 			wg.Done()
 		}(strconv.Itoa(i))
 	}
@@ -76,14 +76,14 @@ func EthernetFrameDecode(EthernetFrameBuff []byte, num int) {
 	var EthernetFrame Ethernet
 	EthernetFrame.DstMac = EthernetFrameBuff[0:6]
 	EthernetFrame.SrcMac = EthernetFrameBuff[6:12]
-	EthernetFrame.Type = EtherProtocol[binary.BigEndian.Uint16(EthernetFrameBuff[12:14])]
+	EthernetFrame.Type = EthernetProtocol[binary.BigEndian.Uint16(EthernetFrameBuff[12:14])]
 	fmt.Println("EthernetFrame : ", EthernetFrame)
 
 	// プロトコル別に場合分け
 	if EthernetFrame.Type == "IPv4" {
-		IpHeaderDecode(EthernetFrameBuff[14:], num - 14)
-	}else if EthernetFrame.Type == "ARP" {
-		ArpHeaderDecode(EthernetFrameBuff[14:], num - 14)
+		IpHeaderDecode(EthernetFrameBuff[14:], num-14)
+	} else if EthernetFrame.Type == "ARP" {
+		ArpHeaderDecode(EthernetFrameBuff[14:], num-14)
 	}
 }
 
@@ -99,7 +99,7 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 	Ip.Flags = IPv4Flag(binary.BigEndian.Uint16(IpBuff[6:8]) >> 13)
 	Ip.FlagOffset = binary.BigEndian.Uint16(IpBuff[6:8]) & 0x1FFF
 	Ip.TTL = IpBuff[8]
-	Ip.Protocol = Protocol[int(IpBuff[9])]
+	Ip.Protocol = IPProtocol[int(IpBuff[9])]
 	Ip.Checksum = binary.BigEndian.Uint16(IpBuff[10:12])
 	Ip.SrcIP = IpBuff[12:16]
 	Ip.DstIP = IpBuff[16:20]
@@ -109,16 +109,16 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 
 	// プロトコル別に場合分け
 	if Ip.Protocol == "ICMP" {
-		IcmpDecode(IpBuff[20:], num - 20)
-	}else if Ip.Protocol == "TCP" {
-		TcpDecode(IpBuff[20:], num - 20)
+		IcmpDecode(IpBuff[20:], num-20)
+	} else if Ip.Protocol == "TCP" {
+		TcpDecode(IpBuff[20:], num-20)
 	}
 }
 
 // TCP解析
 func TcpDecode(TcpBuff []byte, num int) {
 	fmt.Println("TcpDecode()")
-	var TcpHeader TcpHeader
+	var TcpHeader TCP
 	TcpHeader.SrcPort = binary.BigEndian.Uint16(TcpBuff[0:2])
 	TcpHeader.DstPort = binary.BigEndian.Uint16(TcpBuff[2:4])
 	TcpHeader.SequenceNum = binary.BigEndian.Uint32(TcpBuff[4:8])
@@ -130,7 +130,7 @@ func TcpDecode(TcpBuff []byte, num int) {
 	TcpHeader.PSH = int(TcpBuff[14] >> 3 & 0x01)
 	TcpHeader.RST = int(TcpBuff[14] >> 2 & 0x01)
 	TcpHeader.SYN = int(TcpBuff[14] >> 1 & 0x01)
-	TcpHeader.FIN = int(TcpBuff[14]      & 0x01)
+	TcpHeader.FIN = int(TcpBuff[14] & 0x01)
 	TcpHeader.WindowSize = binary.BigEndian.Uint16(TcpBuff[14:16])
 	TcpHeader.CheckSum = binary.BigEndian.Uint16(TcpBuff[16:18])
 	TcpHeader.UrgentPointer = binary.BigEndian.Uint16(TcpBuff[18:20])
@@ -152,7 +152,7 @@ func IcmpDecode(IcmpBuff []byte, num int) {
 // ARPヘッダー解析
 func ArpHeaderDecode(ArpBuff []byte, num int) {
 	fmt.Println("ArpHeaderDecode()")
-	var Arp Arp
+	var Arp ARP
 	Arp.HardwareType = binary.BigEndian.Uint16(ArpBuff[0:2])
 	Arp.ProtocolType = binary.BigEndian.Uint16(ArpBuff[2:4])
 	Arp.HardwareLength = ArpBuff[4]

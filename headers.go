@@ -2,7 +2,7 @@ package main
 
 import "net"
 
-var EtherProtocol = map[uint16]string{
+var EthernetProtocol = map[uint16]string{
 	2048:  "IPv4",
 	34525: "IPv6",
 	2054:  "ARP",
@@ -15,7 +15,7 @@ type Ethernet struct {
 	Data   []byte
 }
 
-var Protocol = map[int]string{
+var IPProtocol = map[int]string{
 	1:  "ICMP",
 	6:  "TCP",
 	17: "UDP",
@@ -44,7 +44,7 @@ type IPv4Option struct {
 	OptionData   []byte
 }
 
-type Arp struct {
+type ARP struct {
 	HardwareType   uint16
 	ProtocolType   uint16
 	HardwareLength uint8
@@ -64,22 +64,22 @@ type ICMP struct {
 	Data     []byte
 }
 
-type TcpHeader struct {
-	SrcPort uint16
-	DstPort uint16
-	SequenceNum uint32
+type TCP struct {
+	SrcPort               uint16
+	DstPort               uint16
+	SequenceNum           uint32
 	AcknowledgementNumber uint32
-	HeaderLength uint8
-	Reserved uint8
-	URG int
-	ACK int
-	PSH int
-	RST int
-	SYN int
-	FIN int
-	WindowSize uint16
-	CheckSum uint16
-	UrgentPointer uint16
-	Options []byte
-	Padding []byte
+	HeaderLength          uint8
+	Reserved              uint8
+	URG                   int
+	ACK                   int
+	PSH                   int
+	RST                   int
+	SYN                   int
+	FIN                   int
+	WindowSize            uint16
+	CheckSum              uint16
+	UrgentPointer         uint16
+	Options               []byte
+	Padding               []byte
 }
