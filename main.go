@@ -107,7 +107,34 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 	Ip.Padding = nil
 	fmt.Println("IP : ", Ip)
 
-	IcmpDecode(IpBuff[20:], num - 20)
+	// プロトコル別に場合分け
+	if Ip.Protocol == "ICMP" {
+		IcmpDecode(IpBuff[20:], num - 20)
+	}else if Ip.Protocol == "TCP" {
+		TcpDecode(IpBuff[20:], num - 20)
+	}
+}
+
+// TCP解析
+func TcpDecode(TcpBuff []byte, num int) {
+	fmt.Println("TcpDecode()")
+	var TcpHeader TcpHeader
+	TcpHeader.SrcPort = binary.BigEndian.Uint16(TcpBuff[0:2])
+	TcpHeader.DstPort = binary.BigEndian.Uint16(TcpBuff[2:4])
+	TcpHeader.SequenceNum = binary.BigEndian.Uint32(TcpBuff[4:8])
+	TcpHeader.AcknowledgementNumber = binary.BigEndian.Uint32(TcpBuff[8:12])
+	TcpHeader.HeaderLength = TcpBuff[12] >> 4
+	TcpHeader.Reserved = 0
+	TcpHeader.URG = int(binary.BigEndian.Uint16(TcpBuff[12:14]) >> 5 & 0x01)
+	TcpHeader.ACK = int(binary.BigEndian.Uint16(TcpBuff[12:14]) >> 4 & 0x01)
+	TcpHeader.PSH = int(TcpBuff[14] >> 3 & 0x01)
+	TcpHeader.RST = int(TcpBuff[14] >> 2 & 0x01)
+	TcpHeader.SYN = int(TcpBuff[14] >> 1 & 0x01)
+	TcpHeader.FIN = int(TcpBuff[14]      & 0x01)
+	TcpHeader.WindowSize = binary.BigEndian.Uint16(TcpBuff[14:16])
+	TcpHeader.CheckSum = binary.BigEndian.Uint16(TcpBuff[16:18])
+	TcpHeader.UrgentPointer = binary.BigEndian.Uint16(TcpBuff[18:20])
+	fmt.Println("TCP Header : ", TcpHeader)
 }
 
 // ICMP解析
@@ -125,7 +152,6 @@ func IcmpDecode(IcmpBuff []byte, num int) {
 // ARPヘッダー解析
 func ArpHeaderDecode(ArpBuff []byte, num int) {
 	fmt.Println("ArpHeaderDecode()")
-	fmt.Println(ArpBuff[:num])
 	var Arp Arp
 	Arp.HardwareType = binary.BigEndian.Uint16(ArpBuff[0:2])
 	Arp.ProtocolType = binary.BigEndian.Uint16(ArpBuff[2:4])

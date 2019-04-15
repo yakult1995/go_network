@@ -63,3 +63,23 @@ type ICMP struct {
 	Length   uint8
 	Data     []byte
 }
+
+type TcpHeader struct {
+	SrcPort uint16
+	DstPort uint16
+	SequenceNum uint32
+	AcknowledgementNumber uint32
+	HeaderLength uint8
+	Reserved uint8
+	URG int
+	ACK int
+	PSH int
+	RST int
+	SYN int
+	FIN int
+	WindowSize uint16
+	CheckSum uint16
+	UrgentPointer uint16
+	Options []byte
+	Padding []byte
+}
