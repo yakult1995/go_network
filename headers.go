@@ -4,6 +4,7 @@ import "net"
 
 var EtherProtocol = map[uint16] string {
 	2048 : "IPv4",
+	34525 : "IPv6",
 	2054 : "ARP",
 }
 
