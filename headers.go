@@ -15,7 +15,7 @@ type Ethernet struct {
 	Data   []byte
 }
 
-var Protcol = map[int]string{
+var Protocol = map[int]string{
 	1:  "ICMP",
 	6:  "TCP",
 	17: "UDP",

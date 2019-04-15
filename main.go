@@ -102,7 +102,7 @@ func IpHeaderDecode(IpBuff []byte, num int) {
 	Ip.Flags = IPv4Flag(binary.BigEndian.Uint16(IpBuff[6:8]) >> 13)
 	Ip.FlagOffset = binary.BigEndian.Uint16(IpBuff[6:8]) & 0x1FFF
 	Ip.TTL = IpBuff[8]
-	Ip.Protocol = Protcol[int(IpBuff[9])]
+	Ip.Protocol = Protocol[int(IpBuff[9])]
 	Ip.Checksum = binary.BigEndian.Uint16(IpBuff[10:12])
 	Ip.SrcIP = IpBuff[12:16]
 	Ip.DstIP = IpBuff[16:20]
