@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	_ "golang.org/x/sys/unix"
-	"net"
 	"os"
 	"strconv"
 	"sync"
