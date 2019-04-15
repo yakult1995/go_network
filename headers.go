@@ -2,10 +2,15 @@ package main
 
 import "net"
 
+var EtherProtocol = map[uint16] string {
+	2048 : "IPv4",
+	2054 : "ARP",
+}
+
 type Ethernet struct {
 	DstMac []byte
 	SrcMac []byte
-	Type uint16
+	Type string
 	Data []byte
 }
 

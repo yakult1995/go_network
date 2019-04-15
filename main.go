@@ -38,7 +38,7 @@ func main() {
 		wg.Add(1)
 		go func(index string) {
 			// これでPreAmbleは入ってこない。ちなみにmacOSでは`AF_PACKET`, `ETH_P_IP`が認識されないので動きませぬ。
-			fd, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, int(Htons(syscall.ETH_P_IP)))
+		fd, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, int(Htons(syscall.ETH_P_ALL)))
 			if err != nil {
 				fmt.Println("Socket")
 				panic(err)
@@ -79,7 +79,7 @@ func EthernetFrameDecode(EthernetFrameBuff []byte, num int) {
 	var EthernetFrame Ethernet
 	EthernetFrame.DstMac = EthernetFrameBuff[0:6]
 	EthernetFrame.SrcMac = EthernetFrameBuff[6:12]
-	EthernetFrame.Type = binary.BigEndian.Uint16(EthernetFrameBuff[12:14]) & 0x000C
+	EthernetFrame.Type = EtherProtocol[binary.BigEndian.Uint16(EthernetFrameBuff[12:14])]
 	fmt.Println("EthernetFrame : ", EthernetFrame)
 	IpHeaderDecode(EthernetFrameBuff[14:], num - 14)
 }
