@@ -47,9 +47,6 @@ func main() {
 
 			file := os.NewFile(uintptr(fd), "")
 
-			//var Nready int
-			// https://forum.golangbridge.org/t/unix-poll-help/6834
-
 			for EndFlag == 0 {
 				fmt.Println()
 				buffer := make([]byte, 1024)
@@ -58,8 +55,8 @@ func main() {
 					fmt.Println("Buffer")
 					panic(err)
 				}
-				//IpHeaderDecode(buffer, num)
-				//EtherRecv(buffer[:num])
+
+				// Ethernetを全て監視しているのでとりあえずEthernetFrame解析
 				EthernetFrameDecode(buffer, num)
 			}
 
@@ -158,9 +155,7 @@ func GetMacAddress() {}
 func SigTerm() {}
 
 // 送受信スレッド
-func MyEthThread() {
-	//var nready int
-}
+func MyEthThread() {}
 
 // ターゲットIPアドレスの判定
 func IsTragetAddr() {}
