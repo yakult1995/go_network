@@ -162,14 +162,6 @@ func MyEthThread() {
 	//var nready int
 }
 
-// イーサネットフレーム受信処理
-func EtherRecv(buff []byte) {
-	fmt.Println(buff)
-}
-
-// ARPパケット受信処理
-func ArpRecv() {}
-
 // ターゲットIPアドレスの判定
 func IsTragetAddr() {}
 
@@ -182,16 +174,8 @@ func ArpSend() {}
 // イーサネットフレーム送信
 func EtherSend() {}
 
-// IPパケット受信処理
-func IpRecv() {}
-
 // IP受信バッファへの追加
 func IpRecvBufAdd() {}
 
-// ICMPパケット受信処理
-func IcmpRecv() {}
-
 // ICMPエコーリプライパケットの送信
 func IcmpSendEchoReply() {}
-
-//
