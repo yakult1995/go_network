@@ -15,50 +15,6 @@ var EndFlag = 0
 var DeviceSoc int32
 var Timeout = 500
 
-type Ethernet struct {
-	DstMac []byte
-	SrcMac []byte
-	Type uint16
-	Data []byte
-}
-
-var Protcol = map[int] string {
-	1 : "ICMP",
-	6 : "TCP",
-	17 : "UDP",
-}
-
-type IPv4Flag uint8
-type IPv4 struct {
-	Version    uint8
-	IHL        uint8
-	TOS        uint8
-	Length     uint16
-	Id         uint16
-	Flags      IPv4Flag
-	FlagOffset uint16
-	TTL        uint8
-	Protocol   string
-	Checksum   uint16
-	SrcIP      net.IP
-	DstIP      net.IP
-	Options    []IPv4Option
-	Padding    []byte
-}
-type IPv4Option struct {
-	OptionType   uint8
-	OptionLength uint8
-	OptionData   []byte
-}
-
-type ICMP struct {
-	Type uint8
-	Code uint8
-	Checksum uint16
-	Length uint8
-	Data []byte
-}
-
 // https://github.com/fridolin-koch/grnvs/blob/master/ndp/ndisc.go
 func Htons(n uint16) uint16 {
 	var (
@@ -82,9 +38,8 @@ func main() {
 		ch <- 1
 		wg.Add(1)
 		go func(index string) {
-			// これでPreAmbleは入ってこない
+			// これでPreAmbleは入ってこない。ちなみにmacOSでは`AF_PACKET`, `ETH_P_IP`が認識されないので動きませぬ。
 			fd, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, int(Htons(syscall.ETH_P_IP)))
-			//fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_ICMP)
 			if err != nil {
 				fmt.Println("Socket")
 				panic(err)
